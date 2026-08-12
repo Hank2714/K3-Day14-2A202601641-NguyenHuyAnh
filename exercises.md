@@ -30,11 +30,11 @@ critical.
 
 | Metric | Acceptable Low Score Scenario | Critical Low Score Scenario | Action Required |
 |---|---|---|---|
-| Faithfulness | | | |
-| Answer Relevance | | | |
-| Context Recall | | | |
-| Context Precision | | | |
-| Completeness | | | |
+| Faithfulness | Low-stakes questions, where user can verify independently; simple factual answers with obvious grounding. | Any high-stakes domain (legal, medical, financial); when hallucinations could cause harm or legal liability. | Investigate context quality, add grounding guardrails, implement citation verification. |
+| Answer Relevance | Conversational follow-ups where partial relevance is acceptable; user intent is clear from context. | Direct factual questions where relevance <0.6 indicates wrong topic coverage; user explicitly asking for X but getting Y. | Review routing logic, improve prompt alignment with user intent, analyze failure patterns. |
+| Context Recall | Supplementary questions where partial evidence is acceptable; when gold context is overly broad. | When user asks for complete information (e.g., "list all X") and retrieval misses >40%; core factual gaps. | Improve retriever's recall, expand index, adjust chunking strategy, add query expansion. |
+| Context Precision | Large context windows where top-K retrieval is not critical; exploratory queries. | When most relevant info is buried in chunk #10+; user needs immediate answer and irrelevant chunks add noise. | Implement reranking, improve BM25/semantic similarity, prune irrelevant chunks early. |
+| Completeness | Open-ended discussions where partial coverage is acceptable; user explicitly asks for "brief overview." | Step-by-step instructions (e.g., how to register), multi-part questions where missing one part = failure. | Expand retrieval coverage, improve generation's completeness checking, add explicit completeness prompt. |
 
 ### Exercise 1.2 — Bias trong LLM-as-a-Judge
 
@@ -47,14 +47,64 @@ Ba bias thường gặp:
 **Câu 1: Thiết kế experiment phát hiện position bias với ít nhất hai conditions.**
 
 > *Câu trả lời:*
+>
+> **Experiment Design: Paired Comparison Test**
+>
+> **Condition A (Baseline):** Cặp answers A-B được trình bày theo thứ tự A trước, B sau.
+> **Condition B (Reversed):** Cùng cặp answers, nhưng đổi ngược: B trước, A sau.
+>
+> **Setup:**
+> - Chuẩn bị 50 pairs of answers (cùng question, hai answers khác chất lượng)
+> - Mỗi pair xuất hiện hai lần: một lần A-left/B-right, một lần B-left/A-right
+> - 4 versions × 50 pairs = 200 total judgments
+> - Randomize order của các pairs cho judge
+>
+> **Measurement:**
+> - Tính tỷ lệ answer được chọn là "better" khi nó ở position 1 vs position 2
+> - Nếu answer ở position 1 được chọn >55% (thay vì 50%), có position bias
+> - Statistical significance test (chi-squared) để xác nhận bias không phải random noise
+>
+> **Additional Condition (Bonus):** Neutral baseline — cả hai answers giống hệt nhau. Nếu judge vẫn chọn position 1 >50%, đó là pure position bias.
 
 **Câu 2: Làm thế nào giảm verbosity bias bằng rubric design?**
 
 > *Câu trả lời:*
+>
+> **1. Normalize by length in rubric:**
+> - Explicitly penalize unnecessary verbosity: "Deduct 1 point if answer is significantly longer than needed to answer the question."
+> - Add length comparison in evaluation criteria: "Score based on information density, not word count."
+>
+> **2. Require conciseness in scoring dimensions:**
+> - Add explicit "Conciseness" dimension: 5 = "Direct, complete in minimum words" → 1 = "Verbose with redundant information."
+> - Make it orthogonal to quality: an answer can be excellent AND concise.
+>
+> **3. Instruction-based debiasing in prompt:**
+> - "IMPORTANT: Longer answers are NOT inherently better. A complete answer in 3 sentences scores higher than a verbose answer in 10 sentences with the same information."
+> - "Ignore answer length when scoring correctness and completeness."
+>
+> **4. Use token-limited comparison:**
+> - Pass answers truncated to same length or normalized format
+> - Judge scores based only on content within token budget
 
 **Câu 3: Tại sao cần calibrate LLM judge với human labels?**
 
 > *Câu trả lời:*
+>
+> **Vấn đề cốt lõi:** LLM judge không phải ground truth — nó là một model có thể systematic errors mà ta không biết nếu không so với human judgment.
+>
+> **Lý do cụ thể:**
+>
+> 1. **Establish reliability:** Calibration xác nhận judge aligns với human interpretation của rubric. Không có calibration, ta không biết "4/5" của judge có nghĩa gì thực sự.
+>
+> 2. **Detect systematic bias:** Human labels reveal whether judge consistently rates certain categories too high/low (e.g., always overestimates completeness).
+>
+> 3. **Set meaningful thresholds:** Calibration data cho phép map raw LLM scores → human-interpreted quality levels. Không có calibration, threshold 0.8 có thể quá strict hoặc quá lenient.
+>
+> 4. **Validate for domain:** LLM có training biases. Human calibration确保 judge hiểu domain-specific standards (e.g., legal precision vs. casual tone).
+>
+> 5. **Continuous monitoring:** Model updates có thể shift judge behavior. Recurring calibration catches drift before it affects deployment decisions.
+>
+> **Protocol:** Với mỗi major rubric change hoặc model update, chạy 20-50 human-judged samples và compute correlation (Cohen's kappa, Pearson r). Target: Cohen's kappa ≥ 0.7 (substantial agreement).
 
 ### Exercise 1.3 — Evaluation trong CI/CD
 
@@ -62,13 +112,49 @@ Ba bias thường gặp:
 
 | Metric | Threshold | Lý do |
 |---|---:|---|
-| Faithfulness | | |
-| Answer Relevance | | |
-| Completeness | | |
+| Faithfulness | ≥ 0.85 | Trong student services, sai thông tin có thể gây ảnh hưởng nghiêm trọng (thông tin sai về deadline, học phí, quy định). Block nếu >15% responses chứa hallucination. |
+| Answer Relevance | ≥ 0.80 | Relevance thấp = user không nhận được câu trả lời họ cần. 20% miss rate là unacceptable cho student-facing service. |
+| Completeness | ≥ 0.75 | Completeness <0.75 nghĩa là >25% expected content bị thiếu — có thể dẫn đến user phải hỏi lại nhiều lần. |
+
+**Rationale cho thresholds:**
+
+- **Tất cả đều block tự động** — không rollback manual khi metrics fail.
+- **Faithfulness cao nhất** vì đây là safety-critical: hallucination về chính sách trường có thể gây hậu quả nghiêm trọng.
+- **Completeness thấp nhất** vì partial answers có thể still be helpful nếu core info present; user có thể follow-up.
+- **Graceful degradation:** Nếu chỉ 1-2 metrics fail nhưng others vẫn good, consider canary deployment thay vì full block.
 
 **Câu 2: Khi nào dùng offline evaluation, online evaluation và human review?**
 
 > *Câu trả lời:*
+>
+> **Offline Evaluation:**
+> - **Khi nào:** Pre-deployment, mỗi release/prompt change, regression testing
+> - **Phù hợp với:** RAGAS cho RAG metrics chuẩn hóa, DeepEval cho CI/CD assertions, khi cần reproduce được và deterministic results
+> - **Ưu điểm:** Predictable, reproducible, không ảnh hưởng users
+> - **Nhược điểm:** Không reflect real traffic patterns, có thể miss edge cases hiếm
+>
+> **Online Evaluation:**
+> - **Khi nào:** Continuous monitoring trong production, phát hiện drift theo thời gian
+> - **Phù hợp với:** TruLens cho feedback functions và tracing, A/B testing infrastructure, real user feedback integration
+> - **Ưu điểm:** Reflect real usage, phát hiện degradation sớm
+> - **Nhược điểm:** Cần production traffic, có thể ảnh hưởng users nếu system đang có vấn đề
+>
+> **Human Review:**
+> - **Khi nào:** High-stakes decisions, domain expertise required, validating/challenging LLM-as-judge scores
+> - **Phù hợp với:** Legal/medical/financial content, when automated metrics ambiguous, rubric calibration
+> - **Ưu điểm:** Contextual judgment, catches subtle issues, domain expertise
+> - **Nhược điểm:** Slow, expensive, không scalable, subjective
+>
+> **Decision matrix:**
+>
+> | Scenario | Evaluation Type | Frequency |
+> |---|---|---|
+> | Pre-release check | Offline | Every PR/merge |
+> | Regression after model update | Offline | Every deployment |
+> | Continuous monitoring | Online | Real-time/daily |
+> | Calibrating LLM judge | Human | Monthly/quarterly |
+> | High-stakes content | Human | Every N samples |
+> | New feature rollout | Online + Human | Continuous + sample |
 
 ---
 
