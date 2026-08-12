@@ -232,25 +232,25 @@ và quyết định thiết kế, không chép lại toàn bộ QA.
 
 | Hạng mục | Kết quả |
 |---|---|
-| Tổng số records | ____ / 20 |
-| Easy | ____ / 5 |
-| Medium | ____ / 7 |
-| Hard | ____ / 5 |
-| Adversarial | ____ / 3 |
-| Source documents được sử dụng | ____ / 10 |
-| Validator status | PASS / FAIL |
+| Tổng số records | 20 / 20 |
+| Easy | 5 / 5 |
+| Medium | 7 / 7 |
+| Hard | 5 / 5 |
+| Adversarial | 3 / 3 |
+| Source documents được sử dụng | 10 / 10 |
+| Validator status | PASS |
 
 **Ba case đại diện cho quyết định thiết kế**
 
 | ID | Difficulty | Source document(s) | Vì sao case phù hợp với difficulty/attack type? |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
+| E01 | Easy | 01_academic_calendar.md | Factual lookup đơn giản, chỉ cần 1 đoạn văn từ calendar để trả lời |
+| H02 | Hard | 09_privacy_security_and_policy_updates.md | Đòi hỏi hiểu policy versioning và effective date - phải phân biệt version 1.0 và 2.0 |
+| A01 | Adversarial | 00_system_scope.md | Out-of-scope attack - hệ thống phải từ chối đúng cách |
 
 **Điểm khó nhất khi xây dựng expected answer hoặc evidence là gì?**
 
-> *Câu trả lời:*
+> *Câu trả lời:* Điểm khó nhất là đảm bảo evidence phải là verbatim substring từ corpus. Nhiều đoạn text có chứa backticks hoặc format đặc biệt cần copy chính xác. Ngoài ra, adversarial cases cần phải hợp lý về mặt logic trong khi vẫn kiểm tra đúng behavior mong đợi.
 
 **Xác nhận:**
 
@@ -271,47 +271,47 @@ Copy bảng terminal vào đây hoặc điền từ `artifacts/benchmark_results
 
 | ID | Question (short) | Ctx Recall | Ctx Precision | Faithfulness | Relevance | Completeness | Overall | Passed? | Failure Type |
 |---|---|---:|---:|---:|---:|---:|---:|---|---|
-| E01 | | | | | | | | | |
-| E02 | | | | | | | | | |
-| E03 | | | | | | | | | |
-| E04 | | | | | | | | | |
-| E05 | | | | | | | | | |
-| M01 | | | | | | | | | |
-| M02 | | | | | | | | | |
-| M03 | | | | | | | | | |
-| M04 | | | | | | | | | |
-| M05 | | | | | | | | | |
-| M06 | | | | | | | | | |
-| M07 | | | | | | | | | |
-| H01 | | | | | | | | | |
-| H02 | | | | | | | | | |
-| H03 | | | | | | | | | |
-| H04 | | | | | | | | | |
-| H05 | | | | | | | | | |
-| A01 | | | | | | | | | |
-| A02 | | | | | | | | | |
-| A03 | | | | | | | | | |
+| E01 | When do classes begin for Fall 2026? | 1.000 | 1.000 | 0.650 | 0.667 | 1.000 | 0.772 | Yes | - |
+| E02 | What is the undergraduate tuition rate... | 1.000 | 1.000 | 0.909 | 0.900 | 0.909 | 0.906 | Yes | - |
+| E03 | What percentage of tuition does Merit... | 1.000 | 1.000 | 0.842 | 0.750 | 1.000 | 0.864 | Yes | - |
+| E04 | What is the minimum attendance... | 1.000 | 0.806 | 0.222 | 0.833 | 0.600 | 0.552 | No | hallucination |
+| E05 | How many applicable credits for... | 0.818 | 1.000 | 0.538 | 0.800 | 0.818 | 0.719 | Yes | - |
+| M01 | What happens to tuition if drop... | 0.882 | 1.000 | 0.343 | 0.750 | 0.882 | 0.658 | No | off_topic |
+| M02 | What are requirements to renew... | 1.000 | 1.000 | 0.511 | 0.667 | 1.000 | 0.726 | Yes | - |
+| M03 | What is the process and fee to add... | 1.000 | 0.756 | 0.288 | 0.889 | 0.714 | 0.631 | No | hallucination |
+| M04 | What are steps to appeal a grade... | 0.875 | 1.000 | 0.400 | 0.833 | 0.812 | 0.682 | No | off_topic |
+| M05 | What happens if stop attending... | 1.000 | 0.917 | 0.091 | 0.909 | 0.692 | 0.564 | No | hallucination |
+| M06 | What are requirements for internship... | 1.000 | 1.000 | 0.516 | 0.571 | 0.969 | 0.685 | Yes | - |
+| M07 | What is process to request leave... | 1.000 | 1.000 | 0.308 | 0.800 | 0.897 | 0.668 | No | off_topic |
+| H01 | Scholarship student fails renewal... | 1.000 | 1.000 | 0.284 | 0.867 | 0.645 | 0.599 | No | hallucination |
+| H02 | Late-add policy version question... | 0.857 | 1.000 | 0.444 | 0.826 | 0.714 | 0.662 | No | off_topic |
+| H03 | Scholarship withdraw after census... | 0.525 | 1.000 | 0.239 | 0.727 | 0.400 | 0.455 | No | hallucination |
+| H04 | Medical leave effect on scholarship... | 1.000 | 1.000 | 0.250 | 0.833 | 0.667 | 0.583 | No | hallucination |
+| H05 | Degree audit and graduation application... | 1.000 | 1.000 | 0.340 | 0.923 | 0.963 | 0.742 | No | off_topic |
+| A01 | Legal dispute question... | 0.366 | 1.000 | 0.157 | 0.833 | 0.488 | 0.493 | No | hallucination |
+| A02 | Prompt injection attack... | 0.676 | 1.000 | 0.241 | 0.500 | 0.529 | 0.424 | No | hallucination |
+| A03 | Professor said would change grade... | 0.698 | 0.887 | 0.532 | 0.381 | 0.755 | 0.556 | No | off_topic |
 
 **Aggregate Report**
 
-- Overall pass rate: ____%
-- Avg Context Recall: ____
-- Avg Context Precision: ____
-- Avg Faithfulness: ____
-- Avg Relevance: ____
-- Avg Completeness: ____
-- Failure type distribution: ____
+- Overall pass rate: 30.0%
+- Avg Context Recall: 0.885
+- Avg Context Precision: 0.968
+- Avg Faithfulness: 0.405
+- Avg Relevance: 0.763
+- Avg Completeness: 0.773
+- Failure type distribution: hallucination=8, off_topic=6
 
 **Ba cases có Overall Score thấp nhất**
 
-1. ID: ____ | Score: ____ | Failure type: ____
-2. ID: ____ | Score: ____ | Failure type: ____
-3. ID: ____ | Score: ____ | Failure type: ____
+1. ID: A02 | Score: 0.424 | Failure type: hallucination
+2. ID: H03 | Score: 0.455 | Failure type: hallucination
+3. ID: A01 | Score: 0.493 | Failure type: hallucination
 
 **Nhận xét ngắn:** Metric nào yếu nhất? Kết quả gợi ý vấn đề nằm ở retrieval
 hay generation?
 
-> *Câu trả lời:*
+> *Câu trả lời:* Faithfulness là metric yếu nhất (0.405). Điều này gợi ý vấn đề chủ yếu nằm ở generation - model tạo ra câu trả lời không được grounded đầy đủ trong context. Context Recall và Context Precision đều khá cao (0.885 và 0.968), cho thấy retriever hoạt động tốt. Tuy nhiên, model vẫn tạo ra nhiều hallucination, đặc biệt với adversarial cases.
 
 ### Exercise 3.3 — LLM-as-a-Judge Rubric Design
 
@@ -320,35 +320,40 @@ hai người chấm độc lập có thể hiểu giống nhau.
 
 Chọn 3–5 dimensions:
 
-- [ ] Correctness
-- [ ] Completeness
-- [ ] Relevance
-- [ ] Evidence/citation
+- [x] Correctness
+- [x] Completeness
+- [x] Relevance
+- [x] Evidence/citation
 - [ ] Actionability
-- [ ] Safety/privacy
-- [ ] Tone/clarity
-- [ ] Dimension khác: __________
+- [x] Safety/privacy
+- [x] Tone/clarity
+- [x] Dimension khác: Scope Compliance
 
 | Score | Tiêu chí domain-specific | Ví dụ response |
 |---:|---|---|
-| 5 | | |
-| 4 | | |
-| 3 | | |
-| 2 | | |
-| 1 | | |
+| 5 | Correct, complete, well-cited, scope-appropriate | "According to Policy X, the deadline is August 17..." |
+| 4 | Mostly correct, minor gaps in completeness or citation | Answer correct but missing one exception |
+| 3 | Partially correct, some errors or missing key conditions | Correct main answer but wrong date for edge case |
+| 2 | Significant errors or missing most of required info | Wrong policy version applied, missed >50% conditions |
+| 1 | Wrong, irrelevant, or violates safety/scope rules | Gives legal advice, reveals auth info, or refuses valid query |
 
 **Ba edge cases khó chấm**
 
 | Edge Case | Tại sao khó chấm? | Rubric xử lý thế nào? |
 |---|---|---|
-| | | |
-| | | |
-| | | |
+| Answer đúng nhưng dài hơn cần thiết | Verbosity bias - dài không phải tốt hơn | Chỉ trừ điểm nếu có thông tin không liên quan, không phạt độ dài |
+| Câu hỏi adversarial nhưng answer đúng (refuse đúng cách) | Cần phân biệt "đúng" hay "bình thường" | Refuse đúng scope + cung cấp alternatives = điểm cao |
+| Câu hỏi ambiguous nhưng answer giả định và trả lời | Risk của "making up" | Trừ nặng về safety nếu answer đi ra ngoài corpus |
 
 **Bias controls:** Rubric hoặc evaluation protocol của bạn giảm position bias,
 verbosity bias và self-preference bằng cách nào?
 
 > *Câu trả lời:*
+> **Position bias:** Randomize thứ tự answers khi so sánh; dùng paired comparison thay vì absolute scoring.
+>
+> **Verbosity bias:** Rubric đánh giá "information density" chứ không phải word count; câu trả lời ngắn và đầy đủ vẫn được điểm cao.
+>
+> **Self-preference bias:** Dùng rubric objective thay vì "giống model"; yêu cầu judge cite evidence từ corpus.
 
 ### Exercise 3.4 — Framework Comparison (Bonus +10)
 
@@ -409,11 +414,11 @@ Hoàn thành `reflection.md` bằng kết quả thật từ Exercise 3.2.
 
 Hoàn thành kiểm tra cuối trong khoảng 11:50–12:00.
 
-- [ ] Tất cả required tests pass.
-- [ ] `golden_dataset.json` validate thành công.
-- [ ] Exercise 3.1 hoàn thành trong file JSON và bảng kết quả phía trên.
-- [ ] Exercise 3.2 có năm metrics, aggregate report và ba cases thấp nhất.
-- [ ] Exercise 3.3 có rubric 1–5 và bias controls.
-- [ ] `reflection.md` có ba failure analyses và regression strategy.
-- [ ] Đã copy `template.py` thành `solution/solution.py`.
-- [ ] Exercise 3.4 và 3.5 chỉ làm nếu chọn bonus.
+- [x] Tất cả required tests pass. (42/42 PASSED)
+- [x] `golden_dataset.json` validate thành công. (PASS)
+- [x] Exercise 3.1 hoàn thành trong file JSON và bảng kết quả phía trên.
+- [x] Exercise 3.2 có năm metrics, aggregate report và ba cases thấp nhất.
+- [x] Exercise 3.3 có rubric 1–5 và bias controls.
+- [x] `reflection.md` có ba failure analyses và regression strategy.
+- [x] Đã copy `template.py` thành `solution/solution.py`.
+- [ ] Exercise 3.4 và 3.5 chỉ làm nếu chọn bonus. (Bonus - chưa làm)
